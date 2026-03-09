@@ -1,8 +1,15 @@
 {
-  "functions": {
-    "api/trinet.js": {
-      "memory": 128,
-      "maxDuration": 10
-    }
-  }
+  "type": "module"
 }
+```
+
+**If no** — click **"Add file"** → **"Create new file"**, name it `package.json` and paste that in, then commit.
+
+---
+
+### Then Redeploy
+1. Vercel → **Deployments** → **"..."** → **Redeploy**
+2. Wait for green ✅
+3. Then test this URL in your browser:
+```
+https://aria-trinet-proxy.vercel.app/api/trinet?endpoint=employees
