@@ -1,8 +1,15 @@
 {
-  "functions": {
-    "api/trinet.mjs": {
-      "memory": 128,
-      "maxDuration": 10
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/trinet.mjs",
+      "use": "@vercel/node"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/trinet",
+      "dest": "/api/trinet.mjs"
+    }
+  ]
 }
