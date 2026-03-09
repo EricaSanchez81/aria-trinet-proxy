@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -7,13 +7,9 @@ export default async function handler(req, res) {
   const { endpoint } = req.query;
 
   try {
-    // TriNet requires credentials as URL params, not body
     const authUrl = `https://api.trinet.com/oauth/accesstoken?grant_type=client_credentials&client_id=${process.env.TRINET_CLIENT_ID}&client_secret=${process.env.TRINET_CLIENT_SECRET}`;
 
-    const authRes = await fetch(authUrl, {
-      method: "POST",
-    });
-
+    const authRes = await fetch(authUrl, { method: "POST" });
     const authText = await authRes.text();
 
     if (!authRes.ok) {
@@ -27,7 +23,6 @@ export default async function handler(req, res) {
     const authData = JSON.parse(authText);
     const token = authData.access_token;
 
-    // Call TriNet API
     const apiRes = await fetch(
       `https://api.trinet.com/v1/company/${process.env.TRINET_COMPANY_ID}/${endpoint}`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -45,9 +40,17 @@ export default async function handler(req, res) {
 
 ---
 
+### Also Delete the `package.json`
+Since we're using CommonJS now, the `"type": "module"` will actually cause conflicts:
+1. Click on `package.json` in your repo
+2. Click the **trash icon** 🗑️ to delete it
+3. Commit the deletion
+
+---
+
 ### Then Redeploy in Vercel
 1. Vercel → **Deployments** → **"..."** → **Redeploy**
 2. Wait for green ✅
-3. Then paste this in your browser again:
+3. Test in browser:
 ```
 https://aria-trinet-proxy.vercel.app/api/trinet?endpoint=employees
