@@ -7,27 +7,44 @@ export default async function handler(req, res) {
   const { endpoint } = req.query;
 
   try {
-    // Get TriNet access token
+    // Step 1: Get token
+    const authBody = new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.TRINET_CLIENT_ID,
+      client_secret: process.env.TRINET_CLIENT_SECRET,
+    });
+
     const authRes = await fetch("https://api.trinet.com/oauth/accesstoken", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: process.env.TRINET_CLIENT_ID,
-        client_secret: process.env.TRINET_CLIENT_SECRET,
-      }),
+      body: authBody.toString(),
     });
-    const authData = await authRes.json();
+
+    const authText = await authRes.text();
+
+    // Return auth debug info if token fails
+    if (!authRes.ok) {
+      return res.status(200).json({
+        debug: "auth_failed",
+        auth_status: authRes.status,
+        auth_response: authText,
+        client_id_length: process.env.TRINET_CLIENT_ID?.length || 0,
+        client_secret_length: process.env.TRINET_CLIENT_SECRET?.length || 0,
+      });
+    }
+
+    const authData = JSON.parse(authText);
     const token = authData.access_token;
 
-    // Call TriNet API
+    // Step 2: Call TriNet API
     const apiRes = await fetch(
       `https://api.trinet.com/v1/company/${process.env.TRINET_COMPANY_ID}/${endpoint}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const data = await apiRes.json();
     res.status(200).json(data);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(200).json({ debug: "exception", error: err.message });
   }
 }
